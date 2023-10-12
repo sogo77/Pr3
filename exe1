@@ -1,0 +1,74 @@
+using System;
+using System.IO;
+using System.Xml.Serialization;
+using System.Runtime.Serialization.Formatters.Soap;
+
+[Serializable]
+public class Person
+{
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public int Age { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var person = new Person { FirstName = "Богдан", LastName = "Прянiчнiков", Age = 18 };
+
+        SerializeToXml(person, "person.xml");
+        SerializeToSoap(person, "person.soap");
+
+        Console.WriteLine("Десерiалiзовано з XML:");
+        var xmlDeserialized = DeserializeFromXml<Person>("person.xml");
+        PrintPersonInfo(xmlDeserialized);
+
+        Console.WriteLine("Десерiалiзовано з SOAP:");
+        var soapDeserialized = DeserializeFromSoap<Person>("person.soap");
+        PrintPersonInfo(soapDeserialized);
+    }
+
+    static void SerializeToXml<T>(T obj, string fileName)
+    {
+        var serializer = new XmlSerializer(typeof(T));
+        using (var fileStream = File.Create(fileName))
+        {
+            serializer.Serialize(fileStream, obj);
+        }
+    }
+
+    static void SerializeToSoap<T>(T obj, string fileName)
+    {
+        var formatter = new SoapFormatter();
+        using (var fileStream = File.Create(fileName))
+        {
+            formatter.Serialize(fileStream, obj);
+        }
+    }
+
+    static T DeserializeFromXml<T>(string fileName)
+    {
+        var serializer = new XmlSerializer(typeof(T));
+        using (var fileStream = File.OpenRead(fileName))
+        {
+            return (T)serializer.Deserialize(fileStream);
+        }
+    }
+
+    static T DeserializeFromSoap<T>(string fileName)
+    {
+        var formatter = new SoapFormatter();
+        using (var fileStream = File.OpenRead(fileName))
+        {
+            return (T)formatter.Deserialize(fileStream);
+        }
+    }
+
+    static void PrintPersonInfo(Person person)
+    {
+        Console.WriteLine($"Iмя: {person.FirstName}");
+        Console.WriteLine($"Прiзвище: {person.LastName}");
+        Console.WriteLine($"Вiк: {person.Age}");
+    }
+}
